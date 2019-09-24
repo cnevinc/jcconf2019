@@ -1,6 +1,8 @@
 package com.cnevinchen
 
-import com.cnevinchen.di.googleNewsFeedService
+
+import com.cnevinchen.hello.hello
+import com.cnevinchen.news.news
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -8,14 +10,13 @@ import io.ktor.auth.*
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
-import io.ktor.response.respond
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
 
-fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
+//fun main(args: Array<String>): Unit = io.ktor.server.jetty.EngineMain.main(args)
+fun main(args: Array<String>): Unit = io.ktor.server.jetty.EngineMain.main(args)
 
 val clientSettings = OAuthServerSettings.OAuth2ServerSettings(
     name = "fxa",
@@ -23,12 +24,12 @@ val clientSettings = OAuthServerSettings.OAuth2ServerSettings(
     accessTokenUrl = "https://oauth-stable.dev.lcip.org/v1/token", // OAuth token endpoint
     clientId = "1eb7617275323e17",
     clientSecret = "435e6af7724932e42a3c9785cb88e853401bdef42abb10efe212b079d5120e97",
-    accessTokenRequiresBasicAuth = false, // basic auth implementation is not "OAuth style" so falling back to post body
+    accessTokenRequiresBasicAuth = false, // basic auth compile is not "OAuth style" so falling back to post body
     requestMethod = HttpMethod.Post, // must POST to token endpoint
     defaultScopes = listOf("profile") // what scopes to request
 )
 
-fun Application.module(testing: Boolean = false) {
+fun Application.module() {
     install(io.ktor.features.ContentNegotiation) {
         jackson {
         }
@@ -38,14 +39,12 @@ fun Application.module(testing: Boolean = false) {
         oauth("fxa") {
             client = HttpClient(Apache)
             providerLookup = { clientSettings }
-            urlProvider = { "http://localhost:8080/login" }
+            urlProvider = { "https://jcconf2019.appspot.com/login" }
         }
     }
 
     routing {
-        get("/hello") {
-            call.respond(Result(1, "Hello"))
-        }
+        hello()
 
         authenticate("fxa") {
             get("/login") {
@@ -55,15 +54,7 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        get("/news") {
-            val lang = call.request.queryParameters["lang"]
-            if (lang == null) {
-                call.respond(HttpStatusCode.BadRequest, "Please specify language")
-            } else {
-                val list = googleNewsFeedService.getNews(lang)
-                call.respond(it)
-            }
-        }
+        news()
     }
 }
 
