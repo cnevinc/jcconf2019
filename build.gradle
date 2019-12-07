@@ -67,7 +67,7 @@ dependencies {
 }
 appengine {  // App Engine tasks configuration - app engine stand environment
     deploy {   // deploy configuration
-        projectId = "jcconf2019"
+        projectId = "jcconf2019"    // change your project ID here
         version = 1
     }
 }
